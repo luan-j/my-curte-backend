@@ -1,0 +1,71 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                String  @id
+  username          String  @unique
+  name              String
+  email             String  @unique
+  bio               String?
+  avatar_source_url String?
+  cover_source_url  String?
+  password          String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  SocialPost SocialPost[]
+  SocialPostLike SocialPostLike[]
+  user       Follow[]     @relation("user")
+  following  Follow[]     @relation("following")
+  @@map("users")
+}
+
+model SocialPost {
+  id                 String  @id
+  content            String
+  media_source_url   String[]
+  author             User    @relation(fields: [author_id], references: [id])
+  author_id          String
+  reply_for_post_id  String?
+  repost_for_post_id String?
+
+  likes SocialPostLike[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@map("social_posts")
+}
+
+model SocialPostLike {
+  id      String     @id
+  user    User @relation(fields: [user_id], references: [id])
+  user_id String
+  post    SocialPost @relation(fields: [post_id], references: [id])
+  post_id String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@map("social_post_likes")
+}
+
+model Follow {
+  id           String @id
+  user         User   @relation("user", fields: [user_id], references: [id])
+  user_id      String
+  following    User   @relation("following", fields: [following_id], references: [id])
+  following_id String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@map("follows")
+}
